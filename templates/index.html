@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sentiment Analysis</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <style>
+        .scrollable-table { height: 400px; overflow-y: auto; border: 1px solid #ddd; margin-top: 10px; }
+        .scrollable-table table { width: 100%; border-collapse: collapse; }
+        .scrollable-table th, .scrollable-table td { padding: 8px 12px; text-align: left; border-bottom: 1px solid #ddd; }
+        .footer-space { margin-bottom: 100px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="mt-4">Sentiment Analysis of Reviews</h1>
+        <form method="post" enctype="multipart/form-data">
+            <div class="form-group">
+                <label for="classifier">Select Classifier:</label>
+                <select name="classifier" class="form-control">
+                    <option value="Logistic Regression">Logistic Regression</option>
+                    <option value="SVM">Support Vector Machine (SVM)</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="single_review">Enter a single review:</label>
+                <textarea class="form-control" name="single_review" rows="3"></textarea>
+                <button type="submit" name="action" value="single_review" class="btn btn-primary mt-2">Analyze Single Review</button>
+            </div>
+            <div class="form-group">
+                <label for="uploaded_file">Upload CSV file with reviews:</label>
+                <input type="file" class="form-control-file" name="uploaded_file">
+                <button type="submit" name="action" value="multiple_reviews" class="btn btn-primary mt-2">Analyze Multiple Reviews</button>
+            </div>
+        </form>
+
+        {% if sentiment_result %}
+            <h3>Sentiment Result for Single Review: {{ sentiment_result }}</h3>
+        {% endif %}
+
+        {% if sentiment_counts %}
+            <h3>Sentiment Counts for Multiple Reviews:</h3>
+            <p><strong>Positive:</strong> {{ positive_count }}</p>
+            <p><strong>Negative:</strong> {{ negative_count }}</p>
+            <p><strong>Neutral:</strong> {{ neutral_count }}</p>
+            <h3>Accuracy: {{ accuracy }}</h3>
+        {% endif %}
+
+        {% if plot_url %}
+            <h3>Sentiment Analysis Bar Chart:</h3>
+            <div>{{ plot_url|safe }}</div>
+        {% endif %}
+
+        {% if confusion_matrix_img %}
+            <h3>Confusion Matrix:</h3>
+            <img src="data:image/png;base64,{{ confusion_matrix_img }}" alt="Confusion Matrix">
+        {% endif %}
+
+        {% if wordcloud_img %}
+            <h3>Word Cloud:</h3>
+            <img src="data:image/png;base64,{{ wordcloud_img }}" alt="Word Cloud">
+        {% endif %}
+
+        {% if sentiment_table %}
+            <h3>Detailed Sentiment Analysis:</h3>
+            <div class="scrollable-table">{{ sentiment_table|safe }}</div>
+        {% endif %}
+		{% if error_message %}
+			<div class="alert alert-danger">{{ error_message }}</div>
+		{% endif %}
+
+    </div>
+</body>
+</html>
