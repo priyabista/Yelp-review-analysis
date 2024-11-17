@@ -122,7 +122,20 @@ p {
 .accuracy-text {
     color: black; /* Ensure accuracy text is black */
 }
+body {
+    font-family: 'Lato', sans-serif;
+    font-weight: 400; /* Regular weight */
+}
 
+h1, h2, h3, h4, h5, h6 {
+    font-family: 'Lato', sans-serif;
+    font-weight: 700; /* Bold weight for headings */
+}
+
+p {
+    font-family: 'Lato', sans-serif;
+    font-weight: 400; /* Regular weight for paragraphs */
+}
 
     </style>
     <script>
@@ -206,7 +219,11 @@ p {
             {% if wordcloud_img %}
                 <img src="data:image/png;base64,{{ wordcloud_img }}" alt="Word Cloud">
             {% endif %}
+            <hr>
+            <h4>Bar Chart:</h4>
+                {{ plot_url | safe }}
             {% if sentiment_counts %}
+            <hr>
             <h4>Sentiment Counts:</h4>
             <ul>
                 <li>Positive: {{ sentiment_counts['Positive'] }}</li>

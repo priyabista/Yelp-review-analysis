@@ -3,43 +3,135 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>Results Navigation</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <style>
+        /* Same styles as index.html */
+        body {
+            display: flex;
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background-color: #2c3e50;
+            color: #f1f1f1;
+            height: 100vh;
+        }
+        #sidebar {
+            width: 250px;
+            background-color: #34495e;
+            color: #fff;
+            height: 100vh;
+            position: fixed;
+            padding-top: 20px;
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+        #sidebar:hover {
+            width: 270px;
+        }
+        .sidebar-item {
+            padding: 15px;
+            cursor: pointer;
+            text-align: center;
+            font-size: 16px;
+            font-weight: bold;
+            color: #fff;
+            border-bottom: 1px solid #2c3e50;
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+        .sidebar-item:hover {
+            background-color: #1abc9c;
+            color: #fff;
+        }
+        #content {
+            flex: 1;
+            padding: 30px;
+            margin-left: 250px;
+            background-color: #ecf0f1;
+            min-height: 100vh;
+            overflow-y: auto;
+        }
+        .section {
+            display: none;
+        }
+        .active {
+            display: block;
+        }
+        /* Same general styles for the page content */
+        h1, h3 {
+            color: #2c3e50;
+        }
+        img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 5px;
+        }
+        .scrollable-table {
+            overflow-x: auto;
+        }
+    </style>
+    <script>
+        let multipleReviewAnalyzed = {{ multipleReviewAnalyzed | tojson }};
+
+        function showSection(sectionId) {
+            if (!multipleReviewAnalyzed && sectionId !== 'dashboard') {
+                alert("Please analyze the review first.");
+                return;
+            }
+            document.querySelectorAll('.section').forEach(section => section.classList.remove('active'));
+            document.getElementById(sectionId).classList.add('active');
+        }
+
+        window.onload = function() {
+            const storedSection = localStorage.getItem('navigateToSection');
+            if (storedSection) {
+                showSection(storedSection);
+                localStorage.removeItem('navigateToSection');
+            }
+        };
+    </script>
 </head>
 <body>
-    <div id="menu">
+    <div id="sidebar">
         <div class="sidebar-item" onclick="showSection('confusion_matrix')">Confusion Matrix & Accuracy</div>
         <div class="sidebar-item" onclick="showSection('wordcloud')">Word Cloud & Sentiment Counts</div>
         <div class="sidebar-item" onclick="showSection('detailed_analysis')">Detailed Sentiment Analysis</div>
     </div>
-     <!-- Confusion Matrix Section -->
-     <div id="confusion_matrix" class="section">
-        <h3>Confusion Matrix & Accuracy</h3>
-        {% if confusion_matrix_img %}
-            <img src="data:image/png;base64,{{ confusion_matrix_img }}" alt="Confusion Matrix">
-        {% endif %}
-        {% if accuracy %}
-            <p><strong>Accuracy:</strong> {{ accuracy }}</p>
-        {% endif %}
+    <div id="content">
+        <!-- Confusion Matrix Section -->
+        <div id="confusion_matrix" class="section">
+            <h3>Confusion Matrix & Accuracy</h3>
+            {% if confusion_matrix_img %}
+                <img src="data:image/png;base64,{{ confusion_matrix_img }}" alt="Confusion Matrix">
+            {% endif %}
+            {% if accuracy %}
+                <p><strong>Accuracy:</strong> {{ accuracy }}%</p>
+            {% endif %}
+        </div>
+        <!-- Word Cloud Section -->
+        <div id="wordcloud" class="section">
+            <h3>Word Cloud & Sentiment Counts</h3>
+            {% if wordcloud_img %}
+                <img src="data:image/png;base64,{{ wordcloud_img }}" alt="Word Cloud">
+            {% endif %}
+            {% if sentiment_counts %}
+            <h4>Sentiment Counts:</h4>
+            <ul>
+                <li>Positive: {{ sentiment_counts['Positive'] }}</li>
+                <li>Negative: {{ sentiment_counts['Negative'] }}</li>
+                <li>Neutral: {{ sentiment_counts['Neutral'] }}</li>
+            </ul>
+            {% endif %}
+        </div>
+        <!-- Detailed Analysis Section -->
+        <div id="detailed_analysis" class="section">
+            <h3>Detailed Sentiment Analysis</h3>
+            {% if sentiment_table %}
+                <div class="scrollable-table">
+                    {{ sentiment_table|safe }}
+                </div>
+            {% endif %}
+        </div>
     </div>
-    <!-- Word Cloud Section -->
-    <div id="wordcloud" class="section">
-        <h3>Word Cloud & Sentiment Counts</h3>
-        {% if wordcloud_img %}
-            <img src="data:image/png;base64,{{ wordcloud_img }}" alt="Word Cloud">
-        {% endif %}
-        {% if sentiment_counts %}
-            <p><strong>Positive:</strong> {{ positive_count }}</p>
-            <p><strong>Negative:</strong> {{ negative_count }}</p>
-            <p><strong>Neutral:</strong> {{ neutral_count }}</p>
-        {% endif %}
-    </div>
-    <!-- Detailed Analysis Section -->
-    <div id="detailed_analysis" class="section">
-        <h3>Detailed Sentiment Analysis</h3>
-        {% if detailed_analysis %}
-            {{ detailed_analysis|safe }}
-        {% endif %}
-    </div>
-</div>
 </body>
-</html> 
+</html>
