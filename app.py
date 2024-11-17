@@ -40,7 +40,7 @@ def generate_wordcloud(text):
     plt.imshow(wordcloud, interpolation='bilinear')
     plt.axis('off')
     plt.savefig(img, format='png')
-    plt.close()  # Close the plot to avoid overlap
+    plt.close()
     img.seek(0)
     return base64.b64encode(img.getvalue()).decode()
 
@@ -54,7 +54,7 @@ def generate_confusion_matrix(y_true, y_pred):
     plt.ylabel("True Labels")
     plt.title("Confusion Matrix")
     plt.savefig(img, format="png")
-    plt.close()  # Close the plot to avoid overlap
+    plt.close()
     img.seek(0)
     return base64.b64encode(img.getvalue()).decode()
 
@@ -62,16 +62,23 @@ def generate_confusion_matrix(y_true, y_pred):
 def index():
     sentiment_result = plot_url = wordcloud_img = sentiment_counts = sentiment_table = None
     positive_count = negative_count = neutral_count = accuracy = confusion_matrix_img = error_message = None
+    success_message = None  # Success message variable
+    multipleReviewAnalyzed = False  # Ensure it starts as False
 
     if request.method == 'POST':
         action = request.form['action']
         classifier = request.form['classifier']
 
         if action == 'single_review':
-            review = preprocess_text(request.form['single_review'])
-            inp_test = vect.transform([review])
-            model = logreg_model if classifier == "Logistic Regression" else svm_model
-            sentiment_result = model.predict(inp_test)[0]
+            review = request.form.get('single_review')
+            if not review:  # Check if review is empty
+                error_message = "Please enter the review first."
+            else:
+                review = preprocess_text(review)
+                inp_test = vect.transform([review])
+                model = logreg_model if classifier == "Logistic Regression" else svm_model
+                sentiment_result = model.predict(inp_test)[0]
+                # return redirect("/result)
 
         elif action == 'multiple_reviews':
             file = request.files['uploaded_file']
@@ -105,18 +112,30 @@ def index():
 
                     # Convert DataFrame to HTML table
                     sentiment_table = df.to_html(classes="table table-striped", index=False)
+
+                    # Update multipleReviewAnalyzed to True if analysis completes successfully
+                    multipleReviewAnalyzed = True
+
+                    # Set success message
+                    success_message = "Successfully uploaded the CSV file and analyzed the reviews. Please check the results."
                 else:
                     error_message = "Please make sure the CSV file has only one column."
             else:
-                error_message = "Please enter the CSV file only."
+                error_message = "Please enter the CSV file."
 
     return render_template('index.html', sentiment_result=sentiment_result, plot_url=plot_url,
                            wordcloud_img=wordcloud_img, sentiment_counts=sentiment_counts,
                            sentiment_table=sentiment_table, positive_count=positive_count,
                            negative_count=negative_count, neutral_count=neutral_count,
                            accuracy=accuracy, confusion_matrix_img=confusion_matrix_img,
-                           error_message=error_message)
+                           error_message=error_message, success_message=success_message,
+                           multipleReviewAnalyzed=multipleReviewAnalyzed)
 
+#  work on results route
+
+
+# Initialize multipleReviewAnalyzed as False
+multipleReviewAnalyzed = False
 
 if __name__ == "__main__":
     nltk.download('stopwords', quiet=True)

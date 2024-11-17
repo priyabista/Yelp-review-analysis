@@ -7,70 +7,223 @@
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
     <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
     <style>
-        .scrollable-table { height: 400px; overflow-y: auto; border: 1px solid #ddd; margin-top: 10px; }
-        .scrollable-table table { width: 100%; border-collapse: collapse; }
-        .scrollable-table th, .scrollable-table td { padding: 8px 12px; text-align: left; border-bottom: 1px solid #ddd; }
-        .footer-space { margin-bottom: 100px; }
+        body {
+            display: flex;
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background-color: #2c3e50;
+            color: #f1f1f1;
+            height: 100vh;
+        }
+        #sidebar {
+            width: 250px;
+            background-color: #34495e;
+            color: #fff;
+            height: 100vh;
+            position: fixed;
+            padding-top: 20px;
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+        #sidebar:hover {
+            width: 270px;
+        }
+        .sidebar-item {
+            padding: 15px;
+            cursor: pointer;
+            text-align: center;
+            font-size: 16px;
+            font-weight: bold;
+            color: #fff;
+            border-bottom: 1px solid #2c3e50;
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+        .sidebar-item:hover {
+            background-color: #1abc9c;
+            color: #fff;
+        }
+        #content {
+            flex: 1;
+            padding: 30px;
+            margin-left: 250px;
+            background-color: #ecf0f1;
+            min-height: 100vh;
+            overflow-y: auto;
+        }
+        .section {
+            display: none;
+        }
+        .active {
+            display: block;
+        }
+        .form-group label {
+            font-weight: bold;
+            font-size: 16px;
+        }
+        .form-control, .btn {
+            border-radius: 5px;
+        }
+        .btn-primary {
+            background-color: #1abc9c;
+            border: none;
+            font-weight: bold;
+            padding: 10px 20px;
+            transition: background-color 0.3s ease;
+        }
+        .btn-primary:hover {
+            background-color: #16a085;
+        }
+        .result-display {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #fff;
+            color: #2c3e50;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 1.2em;
+            display: flex;
+            align-items: center;
+        }
+        .emoji {
+            font-size: 2em;
+            margin-right: 15px;
+        }
+        .alert {
+            margin-top: 15px;
+        }
+        h1, h3 {
+            color: #2c3e50;
+        }
+        img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 5px;
+        }
+        .scrollable-table {
+            overflow-x: auto;
+        }
+        .divider {
+            margin: 30px 0;
+            border-top: 2px solid #ccc;
+        }
+        /* General text color styling */
+*, ::after, ::before {
+    box-sizing: border-box;
+    color: black; /* Apply black text color to all elements */
+}
+
+/* Styling for paragraph elements */
+p {
+    margin-top: 0;
+    margin-bottom: 1rem;
+}
+
+/* Specific styling for accuracy text */
+.accuracy-text {
+    color: black; /* Ensure accuracy text is black */
+}
+
+
     </style>
+    <script>
+        let multipleReviewAnalyzed = {{ multipleReviewAnalyzed | tojson }}; 
+        
+        function showSection(sectionId) {
+            if (!multipleReviewAnalyzed && sectionId !== 'dashboard') {
+                alert("Please analyze the review first.");
+                return;
+            }
+            document.querySelectorAll('.section').forEach(section => section.classList.remove('active'));
+            document.getElementById(sectionId).classList.add('active');
+        }
+
+        function validateFile(input) {
+            const file = input.files[0];
+            if (file && file.type !== "text/csv") {
+                alert("Please upload a CSV file.");
+                input.value = ""; // Reset the input field
+            }
+        }
+    </script>
 </head>
 <body>
-    <div class="container">
-        <h1 class="mt-4">Sentiment Analysis of Reviews</h1>
-        <form method="post" enctype="multipart/form-data">
-            <div class="form-group">
-                <label for="classifier">Select Classifier:</label>
-                <select name="classifier" class="form-control">
-                    <option value="Logistic Regression">Logistic Regression</option>
-                    <option value="SVM">Support Vector Machine (SVM)</option>
-                </select>
-            </div>
-            <div class="form-group">
-                <label for="single_review">Enter a single review:</label>
-                <textarea class="form-control" name="single_review" rows="3"></textarea>
-                <button type="submit" name="action" value="single_review" class="btn btn-primary mt-2">Analyze Single Review</button>
-            </div>
-            <div class="form-group">
-                <label for="uploaded_file">Upload CSV file with reviews:</label>
-                <input type="file" class="form-control-file" name="uploaded_file">
-                <button type="submit" name="action" value="multiple_reviews" class="btn btn-primary mt-2">Analyze Multiple Reviews</button>
-            </div>
-        </form>
-
-        {% if sentiment_result %}
-            <h3>Sentiment Result for Single Review: {{ sentiment_result }}</h3>
-        {% endif %}
-
-        {% if sentiment_counts %}
-            <h3>Sentiment Counts for Multiple Reviews:</h3>
-            <p><strong>Positive:</strong> {{ positive_count }}</p>
-            <p><strong>Negative:</strong> {{ negative_count }}</p>
-            <p><strong>Neutral:</strong> {{ neutral_count }}</p>
-            <h3>Accuracy: {{ accuracy }}</h3>
-        {% endif %}
-
-        {% if plot_url %}
-            <h3>Sentiment Analysis Bar Chart:</h3>
-            <div>{{ plot_url|safe }}</div>
-        {% endif %}
-
-        {% if confusion_matrix_img %}
-            <h3>Confusion Matrix:</h3>
-            <img src="data:image/png;base64,{{ confusion_matrix_img }}" alt="Confusion Matrix">
-        {% endif %}
-
-        {% if wordcloud_img %}
-            <h3>Word Cloud:</h3>
-            <img src="data:image/png;base64,{{ wordcloud_img }}" alt="Word Cloud">
-        {% endif %}
-
-        {% if sentiment_table %}
-            <h3>Detailed Sentiment Analysis:</h3>
-            <div class="scrollable-table">{{ sentiment_table|safe }}</div>
-        {% endif %}
-		{% if error_message %}
-			<div class="alert alert-danger">{{ error_message }}</div>
-		{% endif %}
-
+    <div id="sidebar">
+        <div class="sidebar-item" onclick="showSection('dashboard')">Dashboard</div>
+        <div class="sidebar-item" onclick="showSection('confusion_matrix')">Confusion Matrix & Accuracy</div>
+        <div class="sidebar-item" onclick="showSection('wordcloud')">Word Cloud & Sentiment Counts</div>
+        <div class="sidebar-item" onclick="showSection('detailed_analysis')">Detailed Sentiment Analysis</div>
+    </div>
+    <div id="content">
+        <!-- Dashboard Section -->
+        <div id="dashboard" class="section active">
+            <h1>Sentiment Analysis Dashboard</h1>
+            {% if error_message %}
+                <div class="alert alert-danger">{{ error_message }}</div>
+            {% endif %}
+            {% if success_message %}
+                <div class="alert alert-success">{{ success_message }}</div>
+            {% endif %}
+            <form method="post" enctype="multipart/form-data">
+                <div class="form-group">
+                    <label for="classifier">Select Classifier:</label>
+                    <select id="classifier" name="classifier" class="form-control">
+                        <option value="Logistic Regression">Logistic Regression</option>
+                        <option value="SVM">Support Vector Machine (SVM)</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="single_review">Enter a single review:</label>
+                    <textarea id="single_review" name="single_review" class="form-control" rows="3"></textarea>
+                </div>
+                <button type="submit" name="action" value="single_review" class="btn btn-primary">Analyze Single Review</button>
+                {% if sentiment_result %}
+                    {% set emoji = "😊" if sentiment_result == "Positive" else "😐" if sentiment_result == "Neutral" else "☹️" %}
+                    <div class="result-display">
+                        <span class="emoji">{{ emoji }}</span>
+                        Sentiment Result: {{ sentiment_result }}
+                    </div>
+                {% endif %}
+                <div class="form-group">
+                    <label for="uploaded_file">Upload CSV file:</label>
+                    <input type="file" id="uploaded_file" name="uploaded_file" class="form-control-file" onchange="validateFile(this)">
+                </div>
+                <button type="submit" name="action" value="multiple_reviews" class="btn btn-primary">Analyze Multiple Reviews</button>
+            </form>
+        </div>
+        <!-- Confusion Matrix Section -->
+        <div id="confusion_matrix" class="section">
+            <h3>Confusion Matrix & Accuracy</h3>
+            {% if confusion_matrix_img %}
+                <img src="data:image/png;base64,{{ confusion_matrix_img }}" alt="Confusion Matrix">
+            {% endif %}
+            {% if accuracy %}
+                <p><strong>Accuracy:</strong> {{ accuracy }}%</p>
+            {% endif %}
+        </div>
+        <!-- Word Cloud Section -->
+        <div id="wordcloud" class="section">
+            <h3>Word Cloud & Sentiment Counts</h3>
+            {% if wordcloud_img %}
+                <img src="data:image/png;base64,{{ wordcloud_img }}" alt="Word Cloud">
+            {% endif %}
+            {% if sentiment_counts %}
+            <h4>Sentiment Counts:</h4>
+            <ul>
+                <li>Positive: {{ sentiment_counts['Positive'] }}</li>
+                <li>Negative: {{ sentiment_counts['Negative'] }}</li>
+                <li>Neutral: {{ sentiment_counts['Neutral'] }}</li>
+            </ul>
+            {% endif %}
+        </div>
+        <!-- Detailed Analysis Section -->
+        <div id="detailed_analysis" class="section">
+            <h3>Detailed Sentiment Analysis</h3>
+            {% if sentiment_table %}
+                <div class="scrollable-table">
+                    {{ sentiment_table|safe }}
+                </div>
+            {% endif %}
+        </div>
     </div>
 </body>
 </html>

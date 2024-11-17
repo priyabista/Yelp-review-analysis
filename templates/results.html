@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <div id="menu">
+        <div class="sidebar-item" onclick="showSection('confusion_matrix')">Confusion Matrix & Accuracy</div>
+        <div class="sidebar-item" onclick="showSection('wordcloud')">Word Cloud & Sentiment Counts</div>
+        <div class="sidebar-item" onclick="showSection('detailed_analysis')">Detailed Sentiment Analysis</div>
+    </div>
+     <!-- Confusion Matrix Section -->
+     <div id="confusion_matrix" class="section">
+        <h3>Confusion Matrix & Accuracy</h3>
+        {% if confusion_matrix_img %}
+            <img src="data:image/png;base64,{{ confusion_matrix_img }}" alt="Confusion Matrix">
+        {% endif %}
+        {% if accuracy %}
+            <p><strong>Accuracy:</strong> {{ accuracy }}</p>
+        {% endif %}
+    </div>
+    <!-- Word Cloud Section -->
+    <div id="wordcloud" class="section">
+        <h3>Word Cloud & Sentiment Counts</h3>
+        {% if wordcloud_img %}
+            <img src="data:image/png;base64,{{ wordcloud_img }}" alt="Word Cloud">
+        {% endif %}
+        {% if sentiment_counts %}
+            <p><strong>Positive:</strong> {{ positive_count }}</p>
+            <p><strong>Negative:</strong> {{ negative_count }}</p>
+            <p><strong>Neutral:</strong> {{ neutral_count }}</p>
+        {% endif %}
+    </div>
+    <!-- Detailed Analysis Section -->
+    <div id="detailed_analysis" class="section">
+        <h3>Detailed Sentiment Analysis</h3>
+        {% if detailed_analysis %}
+            {{ detailed_analysis|safe }}
+        {% endif %}
+    </div>
+</div>
+</body>
+</html> 
